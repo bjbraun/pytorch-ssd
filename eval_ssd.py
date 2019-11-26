@@ -3,7 +3,7 @@ from vision.ssd.vgg_ssd import create_vgg_ssd, create_vgg_ssd_predictor
 from vision.ssd.mobilenetv1_ssd import create_mobilenetv1_ssd, create_mobilenetv1_ssd_predictor
 from vision.ssd.mobilenetv1_ssd_lite import create_mobilenetv1_ssd_lite, create_mobilenetv1_ssd_lite_predictor
 from vision.ssd.squeezenet_ssd_lite import create_squeezenet_ssd_lite, create_squeezenet_ssd_lite_predictor
-from vision.datasets.voc_dataset import VOCDataset
+from vision.datasets.own_dataset import VOCDataset
 from vision.datasets.open_images import OpenImagesDataset
 from vision.utils import box_utils, measurements
 from vision.utils.misc import str2bool, Timer
@@ -65,7 +65,7 @@ def group_annotation_by_class(dataset):
             all_gt_boxes[class_index][image_id] = torch.stack(all_gt_boxes[class_index][image_id])
     for class_index in all_difficult_cases:
         for image_id in all_difficult_cases[class_index]:
-            all_gt_boxes[class_index][image_id] = torch.tensor(all_gt_boxes[class_index][image_id])
+            all_difficult_cases[class_index][image_id] = torch.tensor(all_difficult_cases[class_index][image_id])
     return true_case_stat, all_gt_boxes, all_difficult_cases
 
 
@@ -113,10 +113,10 @@ def compute_average_precision_per_class(num_true_cases, gt_boxes, difficult_case
     false_positive = false_positive.cumsum()
     precision = true_positive / (true_positive + false_positive)
     recall = true_positive / num_true_cases
-    if use_2007_metric:
-        return measurements.compute_voc2007_average_precision(precision, recall)
-    else:
-        return measurements.compute_average_precision(precision, recall)
+    print("Precision:", precision)
+    print("Recall:", recall)
+
+    return measurements.compute_average_precision(precision, recall)
 
 
 if __name__ == '__main__':

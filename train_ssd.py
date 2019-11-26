@@ -7,6 +7,8 @@ import itertools
 import torch
 from torch.utils.data import DataLoader, ConcatDataset
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
+import tensorflow as tf
+import datetime
 
 from vision.utils.misc import str2bool, Timer, freeze_net_layers, store_labels
 from vision.ssd.ssd import MatchPrior
@@ -15,7 +17,7 @@ from vision.ssd.mobilenetv1_ssd import create_mobilenetv1_ssd
 from vision.ssd.mobilenetv1_ssd_lite import create_mobilenetv1_ssd_lite
 from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite
 from vision.ssd.squeezenet_ssd_lite import create_squeezenet_ssd_lite
-from vision.datasets.voc_dataset import VOCDataset
+from vision.datasets.own_dataset import VOCDataset
 from vision.datasets.open_images import OpenImagesDataset
 from vision.nn.multibox_loss import MultiboxLoss
 from vision.ssd.config import vgg_ssd_config
@@ -107,7 +109,7 @@ if args.use_cuda and torch.cuda.is_available():
     logging.info("Use Cuda.")
 
 
-def train(loader, net, criterion, optimizer, device, debug_steps=100, epoch=-1):
+def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, epoch=-1):
     net.train(True)
     running_loss = 0.0
     running_regression_loss = 0.0
@@ -141,6 +143,10 @@ def train(loader, net, criterion, optimizer, device, debug_steps=100, epoch=-1):
             running_loss = 0.0
             running_regression_loss = 0.0
             running_classification_loss = 0.0
+
+            if i == debug_steps:
+                tf.summary.scalar("Average Loss", avg_loss, step=epoch)
+                writer.flush()
 
 
 def test(loader, net, criterion, device):
@@ -312,20 +318,22 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    logging.info(f"Start training from epoch {last_epoch + 1}.")
-    for epoch in range(last_epoch + 1, args.num_epochs):
-        scheduler.step()
-        train(train_loader, net, criterion, optimizer,
-              device=DEVICE, debug_steps=args.debug_steps, epoch=epoch)
-        
-        if epoch % args.validation_epochs == 0 or epoch == args.num_epochs - 1:
-            val_loss, val_regression_loss, val_classification_loss = test(val_loader, net, criterion, DEVICE)
-            logging.info(
-                f"Epoch: {epoch}, " +
-                f"Validation Loss: {val_loss:.4f}, " +
-                f"Validation Regression Loss {val_regression_loss:.4f}, " +
-                f"Validation Classification Loss: {val_classification_loss:.4f}"
-            )
-            model_path = os.path.join(args.checkpoint_folder, f"{args.net}-Epoch-{epoch}-Loss-{val_loss}.pth")
-            net.save(model_path)
-            logging.info(f"Saved model {model_path}")
+    writer = tf.summary.create_file_writer("./logs")
+    with writer.as_default():
+        logging.info(f"Start training from epoch {last_epoch + 1}.")
+        for epoch in range(last_epoch + 1, args.num_epochs):
+            scheduler.step()
+            train(train_loader, net, criterion, optimizer, writer,
+                  device=DEVICE, debug_steps=args.debug_steps, epoch=epoch)
+
+            if epoch % args.validation_epochs == 0 or epoch == args.num_epochs - 1:
+                val_loss, val_regression_loss, val_classification_loss = test(val_loader, net, criterion, DEVICE)
+                logging.info(
+                    f"Epoch: {epoch}, " +
+                    f"Validation Loss: {val_loss:.4f}, " +
+                    f"Validation Regression Loss {val_regression_loss:.4f}, " +
+                    f"Validation Classification Loss: {val_classification_loss:.4f}"
+                )
+                model_path = os.path.join(args.checkpoint_folder, f"{args.net}-Epoch-{epoch}-Loss-{val_loss}.pth")
+                net.save(model_path)
+                logging.info(f"Saved model {model_path}")

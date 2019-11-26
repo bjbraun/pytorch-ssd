@@ -7,7 +7,7 @@ import json
 
 def isImgFile(file):
     return file.endswith(".png") and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) \
-           and not(file.startswith("."))
+           and not(file.endswith(".is.png")) and not(file.startswith("."))
 
 def isBboxFile(file):
     return file.endswith(".json") and not(file.startswith("_"))

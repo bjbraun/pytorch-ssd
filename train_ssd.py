@@ -9,6 +9,9 @@ from torch.utils.data import DataLoader, ConcatDataset
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 import tensorflow as tf
 import datetime
+import numpy
+from os.path import expanduser
+import cv2
 
 from vision.utils.misc import str2bool, Timer, freeze_net_layers, store_labels
 from vision.ssd.ssd import MatchPrior
@@ -114,8 +117,9 @@ def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, ep
     running_loss = 0.0
     running_regression_loss = 0.0
     running_classification_loss = 0.0
+    config = mobilenetv1_ssd_config
     for i, data in enumerate(loader):
-        images, boxes, labels = data
+        images, boxes, labels = data  # data is one batch
         images = images.to(device)
         boxes = boxes.to(device)
         labels = labels.to(device)
@@ -146,9 +150,9 @@ def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, ep
 
             if i == debug_steps:
                 tf.summary.scalar("Average Loss", avg_loss, step=epoch)
-
-            tf.summary.image("Images", images[0], step=epoch)
-            writer.flush()
+                img = images[0].cpu().numpy().astype(numpy.float32).transpose(1, 2, 0)
+                path = expanduser("%s%s%s" % ("~/data/Output/train_images_", i, ".jpg"))
+                cv2.imwrite(path, img)
 
 
 def test(loader, net, criterion, device):
@@ -199,6 +203,7 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(1)
     train_transform = TrainAugmentation(config.image_size, config.image_mean, config.image_std)
+    #train_transform = None
     target_transform = MatchPrior(config.priors, config.center_variance,
                                   config.size_variance, 0.5)
 

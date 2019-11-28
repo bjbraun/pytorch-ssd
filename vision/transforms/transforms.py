@@ -109,7 +109,7 @@ class Resize(object):
         self.size = size
 
     def __call__(self, image, boxes=None, labels=None):
-        image = cv2.resize(image, (self.size,
+        image = cv2.resize(image, (self.size,  # (848, 480)
                                  self.size))
         return image, boxes, labels
 
@@ -403,5 +403,6 @@ class PhotometricDistort(object):
         else:
             distort = Compose(self.pd[1:])
         im, boxes, labels = distort(im, boxes, labels)
-        return self.rand_light_noise(im, boxes, labels)
+        #return self.rand_light_noise(im, boxes, labels)
+        return im,boxes,labels
 

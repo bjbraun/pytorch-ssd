@@ -3,6 +3,9 @@ import os
 import logging
 import sys
 import itertools
+import numpy
+from os.path import expanduser
+import cv2
 
 import torch
 from torch.utils.data import DataLoader, ConcatDataset
@@ -36,9 +39,9 @@ if __name__ == '__main__':
                                   config.size_variance, 0.5)
     logging.info(args)
     for dataset_path in args.datasets:
-        #dataset = VOCDataset(dataset_path, transform=train_transform,
-        #                         target_transform=target_transform)
-        dataset = VOCDataset(dataset_path, is_test=True)
+        dataset = VOCDataset(dataset_path, transform=train_transform,
+                                 target_transform=target_transform)
+        dataset1 = VOCDataset(dataset_path)
 
     #VOCDataset
 
@@ -53,21 +56,20 @@ if __name__ == '__main__':
     # __getitem__ (kann einfach aufgerufen werden mit objekt[i], objekt von VOCDataset)
     # _get_annotation gibt für eine image_id aus ids die bndbox und das label für das jeweilige image zurück nachdem es aus dem xml file ausgelesen wurde
     # __get_item__ gibt dann die bndbox, label und image zurück von einer image_id
-    i,b,labels = dataset[400]
-
     writer = tf.summary.create_file_writer("./logs")
-
     with writer.as_default():
-        for step in range(10):
-            tf.summary.scalar("loss", 10-step, step=step)
-            writer.flush()
+        i,b,labels = dataset[0]
+        img = i.numpy().astype(numpy.float32).transpose(1, 2, 0)
+        img_tensor = numpy.reshape(img, (-1, 300, 300, 3))
+        tf.summary.image("Image", img_tensor, step=0)
+        #writer.flush()
+        path = expanduser("%s%s%s" % ("~/data/Output/train_images_", 0, ".jpg"))
+        cv2.imwrite(path, img)
+            #print(l)
+            #id,bld = dataset.get_annotation(0)
+            #print(id)
+            #print(bld[0])
+            #print(id)
+            #print(bld[0][1]) # Gibt die zweite Reihe von den Bounding Boxes wieder
 
-    #print(l)
-    #id,bld = dataset.get_annotation(0)
-    #print(id)
-    #print(bld[0])
-    #print(id)
-    #print(bld[0][1]) # Gibt die zweite Reihe von den Bounding Boxes wieder
-
-    #i = dataset.get_image(1) # ACHTUNG: Kann man so nicht callen, da man boxes, etc noch braucht. Aber passt so
-
+            #i = dataset.get_image(1) # ACHTUNG: Kann man so nicht callen, da man boxes, etc noch braucht. Aber passt so

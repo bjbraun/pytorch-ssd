@@ -28,6 +28,8 @@ class VOCDataset:
                               file in filenames if isImgFile(file)]
         self.filenames_bbox = [os.path.join(path, file) for path, directories, filenames in os.walk(root) for
                                file in filenames if isBboxFile(file)]
+        print(len(self.filenames_img))
+        print(len(self.filenames_bbox))
         self.ids = [str(i) for i in range(len(self.filenames_img))]
 
         assert len(self.filenames_img) == len(self.filenames_bbox), 'Not the same number of images and bounding boxes'

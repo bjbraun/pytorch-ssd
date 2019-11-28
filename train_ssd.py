@@ -146,7 +146,9 @@ def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, ep
 
             if i == debug_steps:
                 tf.summary.scalar("Average Loss", avg_loss, step=epoch)
-                writer.flush()
+
+            tf.summary.image("Images", images[0], step=epoch)
+            writer.flush()
 
 
 def test(loader, net, criterion, device):

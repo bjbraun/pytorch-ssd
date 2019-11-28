@@ -7,8 +7,8 @@ import pathlib
 from os.path import expanduser
 
 def isImgFile(file):
-    return (file.endswith(".png") or file.endswith(".jpg") or file.endswith(".JPG")) \
-           and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) and not(file.startswith("."))
+    return file.endswith(".jpg") and and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) \
+           and not(file.startswith("."))
 
 if len(sys.argv) < 5:
     print('Usage: python run_ssd_example.py <net type>  <model path> <label path> <image path>')

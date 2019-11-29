@@ -18,8 +18,8 @@ class TrainAugmentation:
             RandomMirror(),
             ToPercentCoords(),
             Resize(self.size),
-            #SubtractMeans(self.mean),
-            #lambda img, boxes=None, labels=None: (img / std, boxes, labels),
+            SubtractMeans(self.mean),
+            lambda img, boxes=None, labels=None: (img / std, boxes, labels),
             ToTensor(),
         ])
 

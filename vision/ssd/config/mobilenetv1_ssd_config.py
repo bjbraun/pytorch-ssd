@@ -19,5 +19,4 @@ specs = [
     SSDSpec(1, 300, SSDBoxSizes(285, 330), [2, 3])
 ]
 
-
 priors = generate_ssd_priors(specs, image_size)

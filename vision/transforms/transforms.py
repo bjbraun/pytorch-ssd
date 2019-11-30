@@ -109,12 +109,7 @@ class Resize(object):
         self.size = size
 
     def __call__(self, image, boxes=None, labels=None):
-<<<<<<< HEAD
         image = cv2.resize(image, (self.size, self.size))
-=======
-        image = cv2.resize(image, (300, 300))  #(self.size, (848, 480))
-                                 #self.size))
->>>>>>> b852f7ae899a762bdfa23e6db1f9d02d60ef67a6
         return image, boxes, labels
 
 

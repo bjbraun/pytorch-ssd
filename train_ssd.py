@@ -151,8 +151,8 @@ def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, ep
             if i == debug_steps:
                 tf.summary.scalar("Average Loss", avg_loss, step=epoch)
                 img = images[0].cpu().numpy().astype(numpy.float32).transpose(1, 2, 0)
-                path = expanduser("%s%s%s" % ("~/data/Output/train_images_", epoch, ".jpg"))
-                cv2.imwrite(path, img)
+                path_control = expanduser("%s%s%s" % ("~/data/Output/train_images_", epoch, ".jpg"))
+                cv2.imwrite(path_control, img)
 
 
 def test(loader, net, criterion, device):

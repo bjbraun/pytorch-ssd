@@ -57,17 +57,18 @@ if __name__ == '__main__':
     # __get_item__ gibt dann die bndbox, label und image zurück von einer image_id
     #writer = tf.summary.create_file_writer("./logs")
     #with writer.as_default():
-    i,b,labels = dataset[0]
-    #tf.summary.image("Image", img_tensor, step=0)
-    #writer.flush()
-    img = i.numpy().astype(numpy.float32).transpose(1, 2, 0)
-    path_control = expanduser("%s%s%s" % ("~/data/Output/train_images_", 0, ".jpg"))
-    cv2.imwrite(path_control, img)
-        #print(l)
-        #id,bld = dataset.get_annotation(0)
-        #print(id)
-        #print(bld[0])
-        #print(id)
-        #print(bld[0][1]) # Gibt die zweite Reihe von den Bounding Boxes wieder
+    for counter in range(10):
+        i,b,labels = dataset[counter]
+        #tf.summary.image("Image", img_tensor, step=0)
+        #writer.flush()
+        img = i.numpy().astype(numpy.float32).transpose(1, 2, 0)
+        path_control = expanduser("%s%s%s" % ("~/data/Output/train_images_", counter, ".jpg"))
+        cv2.imwrite(path_control, img)
+            #print(l)
+            #id,bld = dataset.get_annotation(0)
+            #print(id)
+            #print(bld[0])
+            #print(id)
+            #print(bld[0][1]) # Gibt die zweite Reihe von den Bounding Boxes wieder
 
-        #i = dataset.get_image(1) # ACHTUNG: Kann man so nicht callen, da man boxes, etc noch braucht. Aber passt so
+            #i = dataset.get_image(1) # ACHTUNG: Kann man so nicht callen, da man boxes, etc noch braucht. Aber passt so

@@ -381,27 +381,13 @@ class SwapChannels(object):
         image = image[:, :, self.swaps]
         return image
 
-class RedHue(object):
-    def __init__(self, delta=18.0):
-        assert delta >= 0.0 and delta <= 360.0
-        self.delta = delta
+class Blur(object):
+    def __init__(self):
+        self.test = 1
 
     def __call__(self, image, boxes=None, labels=None):
-        # lower mask (0-10)
-        lower_red = np.array([30, 150, 50])
-        upper_red = np.array([255, 255, 180])
-        mask0 = cv2.inRange(image, lower_red, upper_red)
-
-        # upper mask (170-180)
-        #lower_red = np.array([160, 100, 100])
-        #upper_red = np.array([179, 255, 255])
-        #mask1 = cv2.inRange(image, lower_red, upper_red)
-
-        # join my masks
-        #mask = mask0 + mask1
-
-        #image[np.where(mask == 0)] = 0
-        #image = cv2.bitwise_and(image, image, mask=mask0)
+        if random.randint(2):
+            image = cv2.GaussianBlur(image, (3, 3), cv2.BORDER_DEFAULT)
 
         return image, boxes, labels
 
@@ -410,7 +396,7 @@ class PhotometricDistort(object):
         self.pd = [
             RandomContrast(),  # RGB
             ConvertColor(current="RGB", transform='HSV'),  # HSV
-            #RedHue(),
+            Blur(),
             RandomSaturation(),  # HSV
             RandomHue(),  # HSV
             ConvertColor(current='HSV', transform='RGB'),  # RGB
@@ -426,9 +412,8 @@ class PhotometricDistort(object):
             distort = Compose(self.pd[:-1])
         else:
             distort = Compose(self.pd[1:])
-        #distort = Compose(self.pd)
         im, boxes, labels = distort(im, boxes, labels)
-        return self.rand_light_noise(im, boxes, labels)
-        #return im, boxes, labels
+        #return self.rand_light_noise(im, boxes, labels)
+        return im, boxes, labels
 
 

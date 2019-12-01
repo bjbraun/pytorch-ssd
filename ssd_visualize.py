@@ -8,7 +8,8 @@ from os.path import expanduser
 
 def isImgFile(file):
     return (file.endswith(".png") or file.endswith(".jpg") or file.endswith(".JPG")) \
-           and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) and not(file.startswith("."))
+           and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) \
+           and not(file.startswith("."))
 
 if len(sys.argv) < 5:
     print('Usage: python run_ssd_example.py <net type>  <model path> <label path> <image path>')
@@ -37,7 +38,7 @@ filenames_img.sort()
 for counter in range(len(filenames_img)):
     orig_image = cv2.imread(filenames_img[counter])
     image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
-    boxes, labels, probs = predictor.predict(image, 10, 0.1)
+    boxes, labels, probs = predictor.predict(image, 10, 0.2)
 
     for i in range(boxes.size(0)):
         box = boxes[i, :]

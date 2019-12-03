@@ -62,6 +62,7 @@ if __name__ == '__main__':
         #tf.summary.image("Image", img_tensor, step=0)
         #writer.flush()
         img = i.numpy().astype(numpy.float32).transpose(1, 2, 0)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         path_control = expanduser("%s%s%s" % ("~/data/Output/train_images_", counter, ".jpg"))
         cv2.imwrite(path_control, img)
             #print(l)

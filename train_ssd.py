@@ -117,7 +117,6 @@ def train(loader, net, criterion, optimizer, writer, device, debug_steps=100, ep
     running_loss = 0.0
     running_regression_loss = 0.0
     running_classification_loss = 0.0
-    config = mobilenetv1_ssd_config
     for i, data in enumerate(loader):
         images, boxes, labels = data  # data is one batch
         images = images.to(device)
@@ -181,7 +180,7 @@ def test(loader, net, criterion, device):
 
 if __name__ == '__main__':
     timer = Timer()
-
+    print("Test")
     logging.info(args)
     if args.net == 'vgg16-ssd':
         create_net = create_vgg_ssd

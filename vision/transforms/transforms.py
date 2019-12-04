@@ -199,7 +199,7 @@ class RandomBrightness(object):
 
     def __call__(self, image, boxes=None, labels=None):
         if random.randint(2):
-            delta = random.uniform(-self.delta, self.delta)
+            delta = random.uniform((-self.delta/4), (self.delta))
             image += delta
         return image, boxes, labels
 
@@ -381,23 +381,30 @@ class SwapChannels(object):
         image = image[:, :, self.swaps]
         return image
 
+
 class Blur(object):
     def __init__(self):
         self.test = 1
 
     def __call__(self, image, boxes=None, labels=None):
-        if random.randint(2):
+        rand = random.randint(4)
+        if (rand == 1):
             image = cv2.GaussianBlur(image, (3, 3), cv2.BORDER_DEFAULT)
+        elif (rand == 2):
+            image = cv2.GaussianBlur(image, (5, 5), cv2.BORDER_DEFAULT)
+        elif (rand == 3):
+            image = cv2.GaussianBlur(image, (7, 7), cv2.BORDER_DEFAULT)
 
         return image, boxes, labels
+
 
 class PhotometricDistort(object):
     def __init__(self):
         self.pd = [
             RandomContrast(),  # RGB
-            ConvertColor(current="RGB", transform='HSV'),  # HSV
             Blur(),
-            RandomSaturation(),  # HSV
+            ConvertColor(current="RGB", transform='HSV'),  # HSV
+            #RandomSaturation(),  # HSV
             RandomHue(),  # HSV
             ConvertColor(current='HSV', transform='RGB'),  # RGB
             RandomContrast()  # RGB

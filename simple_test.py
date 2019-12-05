@@ -57,14 +57,15 @@ if __name__ == '__main__':
     # __get_item__ gibt dann die bndbox, label und image zurück von einer image_id
     #writer = tf.summary.create_file_writer("./logs")
     #with writer.as_default():
-    for counter in range(10):
-        i,b,labels = dataset[counter]
+    for counter in range(1):
+        i, b, labels = dataset[counter]
         #tf.summary.image("Image", img_tensor, step=0)
         #writer.flush()
         img = i.numpy().astype(numpy.float32).transpose(1, 2, 0)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         path_control = expanduser("%s%s%s" % ("~/data/Output/train_images_", counter, ".jpg"))
         cv2.imwrite(path_control, img)
+        print(b)
             #print(l)
             #id,bld = dataset.get_annotation(0)
             #print(id)

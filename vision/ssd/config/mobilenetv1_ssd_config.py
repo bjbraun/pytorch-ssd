@@ -3,7 +3,7 @@ import numpy as np
 from vision.utils.box_utils import SSDSpec, SSDBoxSizes, generate_ssd_priors
 
 
-image_size = 480
+image_size = [848, 480]
 image_mean = np.array([127, 127, 127])  # RGB layout
 image_std = 128
 iou_threshold = 0.45
@@ -20,6 +20,7 @@ specs = [
     SSDSpec(1, 300, SSDBoxSizes(285, 330), [2, 3])
 ]
 """
+
 
 specs = [
     SSDSpec([53, 30], 16, SSDBoxSizes(60, 105), [2, 3]),

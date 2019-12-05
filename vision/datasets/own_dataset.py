@@ -6,8 +6,8 @@ import os
 import json
 
 def isImgFile(file):
-    return file.endswith(".png") and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) \
-           and not(file.endswith(".is.png")) and not(file.startswith("."))
+    return (file.endswith(".png") or file.endswith(".jpg")) and not(file.endswith(".cs.png")) \
+           and not(file.endswith(".depth.png")) and not(file.endswith(".is.png")) and not(file.startswith("."))
 
 def isBboxFile(file):
     return file.endswith(".json") and not(file.startswith("_"))
@@ -92,18 +92,33 @@ class VOCDataset:
         is_difficult = []
 
         with open(self.filenames_bbox[index], 'rb') as h:
-            json_file =json.load(h)
-            for counter in range(len(json_file["objects"])):
-                class_name = json_file["objects"][counter]["class"]
-                if class_name in self.class_dict:
-                    x1 = json_file["objects"][counter]["bounding_box"]["top_left"][1]  # xmin
-                    y1 = json_file["objects"][counter]["bounding_box"]["top_left"][0]  # ymin
-                    x2 = json_file["objects"][counter]["bounding_box"]["bottom_right"][1]  # xmax
-                    y2 = json_file["objects"][counter]["bounding_box"]["bottom_right"][0]  # ymax
-                    boxes.append([x1, y1, x2, y2])
+            json_file = json.load(h)
+            if "objects" in json_file:
+                for counter in range(len(json_file["objects"])):
+                    class_name = json_file["objects"][counter]["class"]
+                    if class_name in self.class_dict:
+                        x1 = json_file["objects"][counter]["bounding_box"]["top_left"][1]  # xmin
+                        y1 = json_file["objects"][counter]["bounding_box"]["top_left"][0]  # ymin
+                        x2 = json_file["objects"][counter]["bounding_box"]["bottom_right"][1]  # xmax
+                        y2 = json_file["objects"][counter]["bounding_box"]["bottom_right"][0]  # ymax
+                        boxes.append([x1, y1, x2, y2])
 
-                    labels.append(self.class_dict[class_name])
-                    is_difficult.append(0)
+                        labels.append(self.class_dict[class_name])
+                        is_difficult.append(0)
+            elif "shapes" in json_file:
+                for counter in range(len(json_file["shapes"])):
+                    class_name = json_file["shapes"][counter]["label"]
+                    if class_name in self.class_dict:
+                        x1 = json_file["shapes"][counter]["points"][0][0]  # xmin
+                        y1 = json_file["shapes"][counter]["points"][0][1]  # ymin
+                        x2 = json_file["shapes"][counter]["points"][1][0]  # xmax
+                        y2 = json_file["shapes"][counter]["points"][1][1]  # ymax
+                        boxes.append([x1, y1, x2, y2])
+
+                        labels.append(self.class_dict[class_name])
+                        is_difficult.append(0)
+            else:
+                print("Choose correct .json file format")
 
         return (np.array(boxes, dtype=np.float32),
                 np.array(labels, dtype=np.int64),

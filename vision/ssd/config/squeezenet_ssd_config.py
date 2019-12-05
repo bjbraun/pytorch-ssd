@@ -20,4 +20,4 @@ specs = [
 ]
 
 
-priors = generate_ssd_priors(specs, image_size)
+#priors = generate_ssd_priors(specs, image_size)

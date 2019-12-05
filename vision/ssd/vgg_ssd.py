@@ -11,7 +11,6 @@ def create_vgg_ssd(num_classes, is_test=False):
     vgg_config = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'C', 512, 512, 512, 'M',
                   512, 512, 512]
     base_net = ModuleList(vgg(vgg_config))
-
     source_layer_indexes = [
         (23, BatchNorm2d(512)),
         len(base_net),

@@ -85,7 +85,7 @@ parser.add_argument('--t_max', default=120, type=float,
                     help='T_max value for Cosine Annealing Scheduler.')
 
 # Train params
-parser.add_argument('--batch_size', default=32, type=int,
+parser.add_argument('--batch_size', default=2, type=int,
                     help='Batch size for training')
 parser.add_argument('--num_epochs', default=120, type=int,
                     help='the number epochs')
@@ -180,7 +180,6 @@ def test(loader, net, criterion, device):
 
 if __name__ == '__main__':
     timer = Timer()
-    print("Test")
     logging.info(args)
     if args.net == 'vgg16-ssd':
         create_net = create_vgg_ssd

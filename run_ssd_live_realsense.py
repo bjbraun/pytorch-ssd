@@ -6,7 +6,8 @@ from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite, create
 from vision.utils.misc import Timer
 import cv2
 import sys
-import pyrealsense2
+import pyrealsense2 as rs
+import numpy as np
 
 if len(sys.argv) < 4:
     print('Usage: python run_ssd_example.py <net type>  <model path> <label path> [video file]')
@@ -15,12 +16,21 @@ net_type = sys.argv[1]
 model_path = sys.argv[2]
 label_path = sys.argv[3]
 
+# Configure depth and color streams
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+# Start streaming
+pipeline.start(config)
+
 if len(sys.argv) >= 5:
     cap = cv2.VideoCapture(sys.argv[4])  # capture from file
-else:
-    cap = cv2.VideoCapture(0 + CV_CAP_INTELPERC)   # capture from camera
-    cap.set(3, 1920)
-    cap.set(4, 1080)
+#else:
+    #cap = cv2.VideoCapture(0 + CV_CAP_INTELPERC)   # capture from camera
+    #cap.set(3, 1920)
+    #cap.set(4, 1080)
 
 class_names = [name.strip() for name in open(label_path).readlines()]
 num_classes = len(class_names)
@@ -58,7 +68,11 @@ else:
 
 timer = Timer()
 while True:
-    ret, orig_image = cap.read()
+
+    frames = pipeline.wait_for_frames()
+    color_frame = frames.get_color_frame()
+    orig_image = np.asanyarray(color_frame.get_data())
+    #ret, orig_image = cap.read()
     if orig_image is None:
         continue
     image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)

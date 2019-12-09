@@ -105,10 +105,9 @@ class VOCDataset:
 
                         labels.append(self.class_dict[class_name])
                         is_difficult.append(0)
-                    else:
-                        print("Choose correct .json file format")
-            """
-            elif "shapes" in json_file:
+            else:
+                print("Choose correct .json file format")
+            """elif "shapes" in json_file:
                 for counter in range(len(json_file["shapes"])):
                     class_name = json_file["shapes"][counter]["label"]
                     if class_name in self.class_dict:
@@ -119,8 +118,7 @@ class VOCDataset:
                         boxes.append([x1, y1, x2, y2])
 
                         labels.append(self.class_dict[class_name])
-                        is_difficult.append(0)
-            """
+                        is_difficult.append(0)"""
 
         return (np.array(boxes, dtype=np.float32),
                 np.array(labels, dtype=np.int64),

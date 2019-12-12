@@ -57,7 +57,7 @@ class VOCDataset:
 
         else:
             logging.info("No labels file, using default dataset classes.")
-            self.class_names = ('BACKGROUND', 'strawberry', 'apple')
+            self.class_names = ('BACKGROUND', 'strawberry')
 
         self.class_dict = {class_name: i for i, class_name in enumerate(self.class_names)}
 
@@ -125,7 +125,6 @@ class VOCDataset:
                 np.array(is_difficult, dtype=np.uint8))
 
     def _read_image(self, index):
-        print(self.filenames_img[index])
         image_file = self.filenames_img[index]
         image = cv2.imread(str(image_file))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

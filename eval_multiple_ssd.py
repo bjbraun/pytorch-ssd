@@ -14,6 +14,7 @@ import logging
 import sys
 import os
 import tensorflow as tf
+import re
 from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite, create_mobilenetv2_ssd_lite_predictor
 
 
@@ -36,6 +37,18 @@ parser.add_argument('--mb2_width_mult', default=1.0, type=float,
                     help='Width Multiplifier for MobilenetV2')
 args = parser.parse_args()
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu")
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
 
 def isModelFile(file):
     return (file.endswith(".pth"))
@@ -130,8 +143,9 @@ if __name__ == '__main__':
 
     filenames_models = [os.path.join(path, file) for path, directories, filenames in os.walk(args.model_folder) for
                         file in filenames if isModelFile(file)]
-    filenames_models.sort()
+    filenames_models.sort(key=natural_keys)
 
+    counter = 0
     writer = tf.summary.create_file_writer("./logs")
     with writer.as_default():
         for model in filenames_models:
@@ -220,9 +234,14 @@ if __name__ == '__main__':
                     args.iou_threshold,
                     args.use_2007_metric
                 )
+                if class_index == 1:
+                    print(model)
+                    tf.summary.scalar("mAP strawberry", ap, step=counter)
+                    writer.flush()
                 aps.append(ap)
                 print(f"{class_name}: {ap}")
 
+            counter = counter + 5
             print(f"\nAverage Precision Across All Classes:{sum(aps)/len(aps)}")
 
 

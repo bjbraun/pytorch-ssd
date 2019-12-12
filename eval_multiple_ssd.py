@@ -12,6 +12,8 @@ import pathlib
 import numpy as np
 import logging
 import sys
+import os
+import tensorflow as tf
 from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite, create_mobilenetv2_ssd_lite_predictor
 
 
@@ -19,6 +21,7 @@ parser = argparse.ArgumentParser(description="SSD Evaluation on VOC Dataset.")
 parser.add_argument('--net', default="vgg16-ssd",
                     help="The network architecture, it should be of mb1-ssd, mb1-ssd-lite, mb2-ssd-lite or vgg16-ssd.")
 parser.add_argument("--trained_model", type=str)
+parser.add_argument("--model_folder", type=str)
 
 parser.add_argument("--dataset_type", default="voc", type=str,
                     help='Specify dataset type. Currently support voc and open_images.')
@@ -34,6 +37,8 @@ parser.add_argument('--mb2_width_mult', default=1.0, type=float,
 args = parser.parse_args()
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu")
 
+def isModelFile(file):
+    return (file.endswith(".pth"))
 
 def group_annotation_by_class(dataset):
     true_case_stat = {}
@@ -123,95 +128,102 @@ if __name__ == '__main__':
     timer = Timer()
     class_names = [name.strip() for name in open(args.label_file).readlines()]
 
-    if args.dataset_type == "voc":
-        dataset = VOCDataset(args.dataset, is_test=True)
-    elif args.dataset_type == 'open_images':
-        dataset = OpenImagesDataset(args.dataset, dataset_type="test")
+    filenames_models = [os.path.join(path, file) for path, directories, filenames in os.walk(args.model_folder) for
+                        file in filenames if isModelFile(file)]
+    filenames_models.sort()
 
-    true_case_stat, all_gb_boxes, all_difficult_cases = group_annotation_by_class(dataset)
-    if args.net == 'vgg16-ssd':
-        net = create_vgg_ssd(len(class_names), is_test=True)
-    elif args.net == 'mb1-ssd':
-        net = create_mobilenetv1_ssd(len(class_names), is_test=True)
-    elif args.net == 'mb1-ssd-lite':
-        net = create_mobilenetv1_ssd_lite(len(class_names), is_test=True)
-    elif args.net == 'sq-ssd-lite':
-        net = create_squeezenet_ssd_lite(len(class_names), is_test=True)
-    elif args.net == 'mb2-ssd-lite':
-        net = create_mobilenetv2_ssd_lite(len(class_names), width_mult=args.mb2_width_mult, is_test=True)
-    else:
-        logging.fatal("The net type is wrong. It should be one of vgg16-ssd, mb1-ssd and mb1-ssd-lite.")
-        parser.print_help(sys.stderr)
-        sys.exit(1)  
+    writer = tf.summary.create_file_writer("./logs")
+    with writer.as_default():
+        for model in filenames_models:
+            if args.dataset_type == "voc":
+                dataset = VOCDataset(args.dataset, is_test=True)
+            elif args.dataset_type == 'open_images':
+                dataset = OpenImagesDataset(args.dataset, dataset_type="test")
 
-    timer.start("Load Model")
-    net.load(args.trained_model)
-    net = net.to(DEVICE)
-    print(f'It took {timer.end("Load Model")} seconds to load the model.')
-    if args.net == 'vgg16-ssd':
-        predictor = create_vgg_ssd_predictor(net, nms_method=args.nms_method, device=DEVICE)
-    elif args.net == 'mb1-ssd':
-        predictor = create_mobilenetv1_ssd_predictor(net, nms_method=args.nms_method, device=DEVICE)
-    elif args.net == 'mb1-ssd-lite':
-        predictor = create_mobilenetv1_ssd_lite_predictor(net, nms_method=args.nms_method, device=DEVICE)
-    elif args.net == 'sq-ssd-lite':
-        predictor = create_squeezenet_ssd_lite_predictor(net,nms_method=args.nms_method, device=DEVICE)
-    elif args.net == 'mb2-ssd-lite':
-        predictor = create_mobilenetv2_ssd_lite_predictor(net, nms_method=args.nms_method, device=DEVICE)
-    else:
-        logging.fatal("The net type is wrong. It should be one of vgg16-ssd, mb1-ssd and mb1-ssd-lite.")
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+            true_case_stat, all_gb_boxes, all_difficult_cases = group_annotation_by_class(dataset)
+            if args.net == 'vgg16-ssd':
+                net = create_vgg_ssd(len(class_names), is_test=True)
+            elif args.net == 'mb1-ssd':
+                net = create_mobilenetv1_ssd(len(class_names), is_test=True)
+            elif args.net == 'mb1-ssd-lite':
+                net = create_mobilenetv1_ssd_lite(len(class_names), is_test=True)
+            elif args.net == 'sq-ssd-lite':
+                net = create_squeezenet_ssd_lite(len(class_names), is_test=True)
+            elif args.net == 'mb2-ssd-lite':
+                net = create_mobilenetv2_ssd_lite(len(class_names), width_mult=args.mb2_width_mult, is_test=True)
+            else:
+                logging.fatal("The net type is wrong. It should be one of vgg16-ssd, mb1-ssd and mb1-ssd-lite.")
+                parser.print_help(sys.stderr)
+                sys.exit(1)
 
-    results = []
-    for i in range(len(dataset)):
-        print("process image", i)
-        timer.start("Load Image")
-        image = dataset.get_image(i)
-        print("Load Image: {:4f} seconds.".format(timer.end("Load Image")))
-        timer.start("Predict")
-        boxes, labels, probs = predictor.predict(image)
-        print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
-        indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i
-        if len(boxes) == 0:
-            continue
-        results.append(torch.cat([
-            indexes.reshape(-1, 1),
-            labels.reshape(-1, 1).float(),
-            probs.reshape(-1, 1),
-            boxes + 1.0  # matlab's indexes start from 1
-        ], dim=1))
-    results = torch.cat(results)
-    for class_index, class_name in enumerate(class_names):
-        if class_index == 0: continue  # ignore background
-        prediction_path = eval_path / f"det_test_{class_name}.txt"
-        with open(prediction_path, "w") as f:
-            sub = results[results[:, 1] == class_index, :]
-            for i in range(sub.size(0)):
-                prob_box = sub[i, 2:].numpy()
-                image_id = dataset.ids[int(sub[i, 0])]
-                print(
-                    image_id + " " + " ".join([str(v) for v in prob_box]),
-                    file=f
+            timer.start("Load Model")
+            net.load(model)
+            net = net.to(DEVICE)
+            print(f'It took {timer.end("Load Model")} seconds to load the model.')
+            if args.net == 'vgg16-ssd':
+                predictor = create_vgg_ssd_predictor(net, nms_method=args.nms_method, device=DEVICE)
+            elif args.net == 'mb1-ssd':
+                predictor = create_mobilenetv1_ssd_predictor(net, nms_method=args.nms_method, device=DEVICE)
+            elif args.net == 'mb1-ssd-lite':
+                predictor = create_mobilenetv1_ssd_lite_predictor(net, nms_method=args.nms_method, device=DEVICE)
+            elif args.net == 'sq-ssd-lite':
+                predictor = create_squeezenet_ssd_lite_predictor(net,nms_method=args.nms_method, device=DEVICE)
+            elif args.net == 'mb2-ssd-lite':
+                predictor = create_mobilenetv2_ssd_lite_predictor(net, nms_method=args.nms_method, device=DEVICE)
+            else:
+                logging.fatal("The net type is wrong. It should be one of vgg16-ssd, mb1-ssd and mb1-ssd-lite.")
+                parser.print_help(sys.stderr)
+                sys.exit(1)
+
+            results = []
+            for i in range(len(dataset)):
+                print("process image", i)
+                timer.start("Load Image")
+                image = dataset.get_image(i)
+                print("Load Image: {:4f} seconds.".format(timer.end("Load Image")))
+                timer.start("Predict")
+                boxes, labels, probs = predictor.predict(image)
+                print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
+                indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i
+                if len(boxes) == 0:
+                    continue
+                results.append(torch.cat([
+                    indexes.reshape(-1, 1),
+                    labels.reshape(-1, 1).float(),
+                    probs.reshape(-1, 1),
+                    boxes + 1.0  # matlab's indexes start from 1
+                ], dim=1))
+            results = torch.cat(results)
+            for class_index, class_name in enumerate(class_names):
+                if class_index == 0: continue  # ignore background
+                prediction_path = eval_path / f"det_test_{class_name}.txt"
+                with open(prediction_path, "w") as f:
+                    sub = results[results[:, 1] == class_index, :]
+                    for i in range(sub.size(0)):
+                        prob_box = sub[i, 2:].numpy()
+                        image_id = dataset.ids[int(sub[i, 0])]
+                        print(
+                            image_id + " " + " ".join([str(v) for v in prob_box]),
+                            file=f
+                        )
+            aps = []
+            print("\n\nAverage Precision Per-class:")
+            for class_index, class_name in enumerate(class_names):
+                if class_index == 0:
+                    continue
+                prediction_path = eval_path / f"det_test_{class_name}.txt"
+                ap = compute_average_precision_per_class(
+                    true_case_stat[class_index],
+                    all_gb_boxes[class_index],
+                    all_difficult_cases[class_index],
+                    prediction_path,
+                    args.iou_threshold,
+                    args.use_2007_metric
                 )
-    aps = []
-    print("\n\nAverage Precision Per-class:")
-    for class_index, class_name in enumerate(class_names):
-        if class_index == 0:
-            continue
-        prediction_path = eval_path / f"det_test_{class_name}.txt"
-        ap = compute_average_precision_per_class(
-            true_case_stat[class_index],
-            all_gb_boxes[class_index],
-            all_difficult_cases[class_index],
-            prediction_path,
-            args.iou_threshold,
-            args.use_2007_metric
-        )
-        aps.append(ap)
-        print(f"{class_name}: {ap}")
+                aps.append(ap)
+                print(f"{class_name}: {ap}")
 
-    print(f"\nAverage Precision Across All Classes:{sum(aps)/len(aps)}")
+            print(f"\nAverage Precision Across All Classes:{sum(aps)/len(aps)}")
 
 
 

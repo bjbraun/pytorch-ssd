@@ -48,7 +48,7 @@ filenames_img.sort()
 for counter in range(len(filenames_img)):
     orig_image = cv2.imread(filenames_img[counter])
     image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
-    boxes, labels, probs = predictor.predict(image, 10, 0.05)
+    boxes, labels, probs = predictor.predict(image, 10, 0.1)
 
     for i in range(boxes.size(0)):
         box = boxes[i, :]

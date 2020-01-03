@@ -19,18 +19,13 @@ label_path = sys.argv[3]
 # Configure depth and color streams
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 6)
 
 # Start streaming
 pipeline.start(config)
 
 if len(sys.argv) >= 5:
     cap = cv2.VideoCapture(sys.argv[4])  # capture from file
-#else:
-    #cap = cv2.VideoCapture(0 + CV_CAP_INTELPERC)   # capture from camera
-    #cap.set(3, 1920)
-    #cap.set(4, 1080)
 
 class_names = [name.strip() for name in open(label_path).readlines()]
 num_classes = len(class_names)
@@ -65,14 +60,13 @@ else:
     print("The net type is wrong. It should be one of vgg16-ssd, mb1-ssd and mb1-ssd-lite.")
     sys.exit(1)
 
-
 timer = Timer()
 while True:
 
     frames = pipeline.wait_for_frames()
     color_frame = frames.get_color_frame()
     orig_image = np.asanyarray(color_frame.get_data())
-    #ret, orig_image = cap.read()
+    orig_image = cv2.resize(orig_image, (848, 480))
     if orig_image is None:
         continue
     image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
@@ -91,8 +85,10 @@ while True:
                     1,  # font scale
                     (255, 0, 255),
                     2)  # line type
+
     cv2.imshow('annotated', orig_image)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
 cap.release()
 cv2.destroyAllWindows()

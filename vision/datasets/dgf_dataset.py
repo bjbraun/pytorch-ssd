@@ -12,13 +12,12 @@ def isImgFile(file):
 def isBboxFile(file):
     return file.endswith(".json") and not(file.startswith("_"))
 
-class VOCDataset:
+class DGFDataset:
 
     def __init__(self, root, transform=None, target_transform=None, is_test=False, keep_difficult=False, label_file=None):
-        """Dataset for VOC data.
+        """Dataset for data generation framework data.
         Args:
-            root: the root of the VOC2007 or VOC2012 dataset, the directory contains the following sub-directories:
-                Annotations, ImageSets, JPEGImages, SegmentationClass, SegmentationObject.
+            root: the root of the data generation framework dataset
         """
         self.root = pathlib.Path(root)
         self.transform = transform
@@ -53,7 +52,7 @@ class VOCDataset:
             classes.insert(0, 'BACKGROUND')
             classes = [elem.replace(" ", "") for elem in classes]
             self.class_names = tuple(classes)
-            logging.info("VOC Labels read from file: " + str(self.class_names))
+            logging.info("DGF Labels read from file: " + str(self.class_names))
 
         else:
             logging.info("No labels file, using default dataset classes.")

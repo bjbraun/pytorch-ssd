@@ -21,7 +21,7 @@ specs = [
 ]
 """
 
-"""
+
 specs = [
     SSDSpec([19, 19], 16, SSDBoxSizes(60, 105), [2, 3]),
     SSDSpec([10, 10], 32, SSDBoxSizes(105, 150), [2, 3]),
@@ -30,8 +30,9 @@ specs = [
     SSDSpec([2, 2], 150, SSDBoxSizes(240, 285), [2, 3]),
     SSDSpec([1, 1], 300, SSDBoxSizes(285, 330), [2, 3])
 ]
-"""
 
+
+"""
 # Test with default boxes as proposed in paper
 specs = [
     SSDSpec([19, 19], 16, SSDBoxSizes(60, 105), [1, 2, 3, (1/2), (1/3)]),
@@ -41,6 +42,7 @@ specs = [
     SSDSpec([2, 2], 150, SSDBoxSizes(240, 285), [1, 2, 3, (1/2), (1/3)]),
     SSDSpec([1, 1], 300, SSDBoxSizes(285, 330), [1, 2, 3, (1/2), (1/3)])
 ]
+"""
 
 """
 # For resolution of 480 x 480

@@ -20,7 +20,7 @@ from vision.ssd.mobilenetv1_ssd import create_mobilenetv1_ssd
 from vision.ssd.mobilenetv1_ssd_lite import create_mobilenetv1_ssd_lite
 from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite
 from vision.ssd.squeezenet_ssd_lite import create_squeezenet_ssd_lite
-from vision.datasets.own_dataset import VOCDataset
+from vision.datasets.dgf_dataset import DGFDataset
 from vision.datasets.open_images import OpenImagesDataset
 from vision.nn.multibox_loss import MultiboxLoss
 from vision.ssd.config import vgg_ssd_config
@@ -31,8 +31,8 @@ from vision.ssd.data_preprocessing import TrainAugmentation, TestTransform
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Training With Pytorch')
 
-parser.add_argument("--dataset_type", default="voc", type=str,
-                    help='Specify dataset type. Currently support voc and open_images.')
+parser.add_argument("--dataset_type", default="dgf", type=str,
+                    help='Specify dataset type. Currently support data generation framework and open_images.')
 
 parser.add_argument('--datasets', nargs='+', help='Dataset directory path')
 parser.add_argument('--validation_dataset', help='Dataset directory path')
@@ -209,10 +209,10 @@ if __name__ == '__main__':
     logging.info("Prepare training datasets.")
     datasets = []
     for dataset_path in args.datasets:
-        if args.dataset_type == 'voc':
-            dataset = VOCDataset(dataset_path, transform=train_transform,
+        if args.dataset_type == 'dgf':
+            dataset = DGFDataset(dataset_path, transform=train_transform,
                                  target_transform=target_transform)
-            label_file = os.path.join(args.checkpoint_folder, "voc-model-labels.txt")
+            label_file = os.path.join(args.checkpoint_folder, "dgf-model-labels.txt")
             store_labels(label_file, dataset.class_names)
             num_classes = len(dataset.class_names)
         elif args.dataset_type == 'open_images':
@@ -223,7 +223,6 @@ if __name__ == '__main__':
             store_labels(label_file, dataset.class_names)
             logging.info(dataset)
             num_classes = len(dataset.class_names)
-
         else:
             raise ValueError(f"Dataset type {args.dataset_type} is not supported.")
         datasets.append(dataset)
@@ -234,8 +233,8 @@ if __name__ == '__main__':
                               num_workers=args.num_workers,
                               shuffle=True)
     logging.info("Prepare Validation datasets.")
-    if args.dataset_type == "voc":
-        val_dataset = VOCDataset(args.validation_dataset, transform=test_transform,
+    if args.dataset_type == "dgf":
+        val_dataset = DGFDataset(args.validation_dataset, transform=test_transform,
                                  target_transform=target_transform, is_test=True)
     elif args.dataset_type == 'open_images':
         val_dataset = OpenImagesDataset(dataset_path,

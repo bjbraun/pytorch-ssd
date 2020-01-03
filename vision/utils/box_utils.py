@@ -19,7 +19,8 @@ def generate_ssd_priors(specs: List[SSDSpec], image_size, clamp=True) -> torch.T
                 SSDSpec(38, 8, SSDBoxSizes(30, 60), [2]),
                 SSDSpec(19, 16, SSDBoxSizes(60, 111), [2, 3]),
                 SSDSpec(10, 32, SSDBoxSizes(111, 162), [2, 3]),
-                SSDSpec(5, 64, SSDBoxSizes(162, 213), [2, 3]),
+                SSDSpec(5, 64, SSDBox
+                Sizes(162, 213), [2, 3]),
                 SSDSpec(3, 100, SSDBoxSizes(213, 264), [2]),
                 SSDSpec(1, 300, SSDBoxSizes(264, 315), [2])
             ]

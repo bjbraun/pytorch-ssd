@@ -237,10 +237,14 @@ if __name__ == '__main__':
                 if class_index == 1:
                     print(model)
                     tf.summary.scalar("mAP strawberry", ap, step=counter)
-                    writer.flush()
+                if class_index == 2:
+                    print(model)
+                    tf.summary.scalar("mAP apple", ap, step=counter)
                 aps.append(ap)
                 print(f"{class_name}: {ap}")
-
+            
+            tf.summary.scalar("mAP total", (sum(aps)/len(aps)), step=counter)
+            writer.flush()
             counter = counter + 5
             print(f"\nAverage Precision Across All Classes:{sum(aps)/len(aps)}")
 

@@ -57,7 +57,7 @@ class VOCDataset:
 
         else:
             logging.info("No labels file, using default dataset classes.")
-            self.class_names = ('BACKGROUND', 'strawberry')
+            self.class_names = ('BACKGROUND', 'strawberry', 'apple')
 
         self.class_dict = {class_name: i for i, class_name in enumerate(self.class_names)}
 

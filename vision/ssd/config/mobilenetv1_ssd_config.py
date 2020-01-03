@@ -3,7 +3,7 @@ import numpy as np
 from vision.utils.box_utils import SSDSpec, SSDBoxSizes, generate_ssd_priors
 
 
-image_size = [300, 300]
+image_size = [848, 480]
 image_mean = np.array([127, 127, 127])  # RGB layout
 image_std = 128
 iou_threshold = 0.45
@@ -21,7 +21,7 @@ specs = [
 ]
 """
 
-
+"""
 specs = [
     SSDSpec([19, 19], 16, SSDBoxSizes(60, 105), [2, 3]),
     SSDSpec([10, 10], 32, SSDBoxSizes(105, 150), [2, 3]),
@@ -30,7 +30,7 @@ specs = [
     SSDSpec([2, 2], 150, SSDBoxSizes(240, 285), [2, 3]),
     SSDSpec([1, 1], 300, SSDBoxSizes(285, 330), [2, 3])
 ]
-
+"""
 
 """
 # Test with default boxes as proposed in paper
@@ -43,7 +43,16 @@ specs = [
     SSDSpec([1, 1], 300, SSDBoxSizes(285, 330), [1, 2, 3, (1/2), (1/3)])
 ]
 """
-
+#"""
+specs = [
+    SSDSpec([53, 30], 16, SSDBoxSizes(60, 105), [1, 2, (1/2), 3, (1/3)]),
+    SSDSpec([27, 15], 32, SSDBoxSizes(105, 150), [1, 2, (1/2), 3, (1/3)]),
+    SSDSpec([14, 8], 64, SSDBoxSizes(150, 195), [1, 2, (1/2), 3, (1/3)]),
+    SSDSpec([7, 4], 100, SSDBoxSizes(195, 240), [1, 2, (1/2), 3, (1/3)]),
+    SSDSpec([4, 2], 150, SSDBoxSizes(240, 285), [1, 2, (1/2), 3, (1/3)]),
+    SSDSpec([2, 1], 300, SSDBoxSizes(285, 330), [1, 2, (1/2), 3, (1/3)])
+]
+#"""
 """
 # For resolution of 480 x 480
 specs = [

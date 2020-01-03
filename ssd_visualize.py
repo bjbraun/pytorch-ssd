@@ -6,19 +6,22 @@ import sys
 import os
 import pathlib
 from os.path import expanduser
+import torch
 
 def isImgFile(file):
     return (file.endswith(".png") or file.endswith(".jpg") or file.endswith(".JPG")) \
            and not(file.endswith(".cs.png")) and not(file.endswith(".depth.png")) \
            and not(file.startswith("."))
 
-if len(sys.argv) < 5:
-    print('Usage: python run_ssd_example.py <net type>  <model path> <label path> <image path>')
+if len(sys.argv) < 6:
+    print('Usage: python run_ssd_example.py <net type>  <model path> <label path> <image path> <output path>')
     sys.exit(0)
 net_type = sys.argv[1]
 model_path = sys.argv[2]
 label_path = sys.argv[3]
 root = pathlib.Path(sys.argv[4])
+output = pathlib.Path(sys.argv[5])
+
 
 class_names = [name.strip() for name in open(label_path).readlines()]
 
@@ -34,7 +37,8 @@ else:
 net.load(model_path)
 
 if net_type == 'mb2-ssd-lite':
-    predictor = create_mobilenetv2_ssd_lite_predictor(net, candidate_size=200)
+    predictor = create_mobilenetv2_ssd_lite_predictor(net, candidate_size=200, device=
+    torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 elif net_type == 'mb1-ssd':
     predictor = create_mobilenetv1_ssd_predictor(net, candidate_size=200)
 elif net_type == 'vgg16-ssd':
@@ -60,6 +64,7 @@ for counter in range(len(filenames_img)):
                     1,  # font scale
                     (255, 0, 255),
                     2)  # line type
-    path = expanduser("%s%s%s" % ("~/data/Output/ssd_visualize_output_", counter, ".jpg"))
+    path = expanduser(output / ("%s%s%s" % ("ssd_visualize_output_", counter, ".jpg")))
+    print(path)
     cv2.imwrite(path, orig_image)
     print(f"Found {len(probs)} objects. The output image is {path}")
